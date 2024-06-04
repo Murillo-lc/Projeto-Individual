@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="dashboards.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Variado Dashboard</title>
+    <style>
+        .small-chart {
+            margin-left: 80px;
+            max-width: 300px;
+            max-height: 300px;
+        }
+
+        .display-none {
+            display: none;
+        }
+    </style>
+</head>
+
+<body onload="pegarPerfilGeral()">
+    <div class="header-left">
+        <h1>Variado</h1>
+        <a href="#" id="btn-graficos" class="btn-nav">
+            <h3>Gráficos</h3>
+        </a>
+        <a href="#" id="btn-dicas" class="btn-nav-white">
+            <h3>Dicas</h3>
+        </a>
+        <div class="hello">
+            <h3>Olá, Seja Bem-vindo</h3>
+        </div>
+        <a href="#" id="btn-logout" class="btn-logout">
+            <h3>Vídeo de Apoio</h3>
+        </a>
+    </div>
+    <div class="dash-right">
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h2>89</h2>
+                <p>Total de Votos</p>
+            </div>
+            <div class="kpi-card">
+                <h2>30</h2>
+                <p>Votos de Competidores</p>
+            </div>
+        </div>
+        <div class="cards display-none" id="tips">
+            <div class="tips-container">
+                <h2>Dicas principais para Pesca</h2>
+                <div>
+                    <p><br>Escolha o Equipamento Certo: <br><br>
+                        Utilize varas e linhas adequadas para o tipo de peixe que você pretende capturar. Varas mais
+                        leves são ideais para peixes menores, enquanto varas mais fortes são necessárias para peixes
+                        maiores.
+                        <img src="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQX3wRmOnlZE5X_VZo48BPJi_dOQQd7-nunqkIFJGelvOHPgU4wD-UY6IgDB_aFNk6NkalnLnUckeT1oPuNHL46XOu3AMogYzpr_LkVS79X&usqp=CAE"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Pesque nas Horas Certas:<br><br>
+                        Os peixes são geralmente mais ativos durante o amanhecer e o entardecer. A maré enchente e a lua
+                        cheia também podem influenciar positivamente a atividade dos peixes.
+                        <img src="https://static.quizur.com/i/b/560ecebd568917.57146528560ecebd3a90e7.78860151.jpg"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Leve Equipamentos de Segurança:<br><br>
+                        Use protetor solar, chapéu e óculos de sol para se proteger do sol. Leve água e alimentos para
+                        se manter hidratado e energizado durante a pescaria.
+                        <img src="https://images.tcdn.com.br/img/img_prod/1048434/90_chapeu_pescador_com_protetor_de_pescoco_851_4_500573b94cd6cc2b765bc1270ef49a27.jpg"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Tenha Paciência e Persistência: <br><br>
+                        A pescaria exige paciência. Se os peixes não estão mordendo, experimente mudar de local, variar
+                        as iscas ou ajustar a profundidade e a técnica de pesca.
+                        <img src="https://www.gov.br/agricultura/pt-br/assuntos/noticias/registro-de-pescador-amador-ja-pode-ser-solicitado-pela-internet/pescador-amador-istock-873335744.jpg/@@images/3e01d28a-ab9f-4cd3-b517-2782d7ab08a9.jpeg"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Respeite o Meio Ambiente:<br><br>
+                        Pratique a pesca responsável. Não deixe lixo e trate os peixes com cuidado. Solte os peixes que
+                        você não pretende levar para casa e siga as regulamentações locais de pesca.
+                        <img src="https://s2.static.brasilescola.uol.com.br/be/2022/07/meio-ambiente.jpg" alt="">
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="cards" id="charts">
+            <div class="tituloGraficos">
+                <h2>Melhores Lugares para Pescar em Geral</h2>
+            </div>
+            <div class="graph">
+                <canvas id="variadoChart"></canvas>
+            </div>
+        </div>
+        <div class="tituloGraficos">
+            <h2>Quantidade de Usuários Por Perfil</h2>
+        </div>
+        <div class="graph">
+            <canvas id="pieChart" class="small-chart"><h2></h2></canvas>
+        </div>
+        <div id="video" class="display-none">
+            <div class="video-container">
+                <iframe width="560" height="315" src="https://www.youtube.com/embed/jaQweCz5DS8" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+        function pegarPerfilGeral() {
+            fetch("/perfil/pegarPerfilGeral", { cache: "no-store" })
+                .then(function (resposta) {
+                    if (resposta.ok) {
+                        resposta.json().then(json => {
+                            sessionStorage.setItem('PESQUEIRO', json[0].perfilGeral);
+                            sessionStorage.setItem('MAR', json[1].perfilGeral);
+                            sessionStorage.setItem('PRAIA', json[2].perfilGeral);
+                            sessionStorage.setItem('VARIADO', json[3].perfilGeral);
+
+                            atualizarGraficos();
+                        });
+                    } else {
+                        resposta.text().then(texto => {
+                            console.error(texto);
+                        });
+                    }
+                }).catch(function (erro) {
+                    console.error(erro);
+                });
+        }
+
+        document.getElementById('btn-graficos').addEventListener('click', function () {
+            document.getElementById('charts').classList.remove('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-dicas').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.remove('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.remove('display-none');
+        });
+
+        function atualizarGraficos() {
+            const ctxVariado = document.getElementById('variadoChart').getContext('2d');
+            new Chart(ctxVariado, {
+                type: 'bar',
+                data: {
+                    labels: ['Ilha do Cardoso', 'P. Arujá', 'P. Maeda', 'Cananéia', 'Ubatuba'],
+                    datasets: [{
+                        label: 'Qtd. Usuarios',
+                        data: [10, 20, 13, 8, 7],
+                        backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                        borderColor: 'rgba(153, 102, 255, 1)',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+
+            const ctxPie = document.getElementById('pieChart').getContext('2d');
+            new Chart(ctxPie, {
+                type: 'pie',
+                data: {
+                    labels: ['Pesqueiro', 'Praia', 'Mar', 'Variado'],
+                    datasets: [{
+                        label: 'Categorias',
+                        data: [
+                            sessionStorage.getItem('PESQUEIRO'),
+                            sessionStorage.getItem('MAR'),
+                            sessionStorage.getItem('PRAIA'),
+                            sessionStorage.getItem('VARIADO')
+                        ],
+                        backgroundColor: [
+                            'rgba(255, 99, 132, 0.2)',
+                            'rgba(54, 162, 235, 0.2)',
+                            'rgba(75, 192, 192, 0.2)',
+                            'rgba(120, 239, 60, 0.2)'
+                        ],
+                        borderColor: [
+                            'rgba(255, 99, 132, 1)',
+                            'rgba(54, 162, 235, 1)',
+                            'rgba(75, 192, 192, 1)',
+                            'rgba(120, 239, 60, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true
+                }
+            });
+        }
+</script>

@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="dashboards.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Praia Dashboard</title>
+    <style>
+        .small-chart {
+            margin-left: 80px;
+            max-width: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+
+<body onload="pegarPerfilGeral()">
+    <div class="header-left">
+        <h1>Praia</h1>
+        <a href="#" id="btn-graficos" class="btn-nav">
+            <h3>Gráficos</h3>
+        </a>
+        <a href="#" id="btn-dicas" class="btn-nav-white">
+            <h3>Dicas</h3>
+        </a>
+        <div class="hello">
+            <h3>Olá, Seja Bem-vindo</h3>
+        </div>
+        <a href="#" id="btn-logout" class="btn-logout">
+            <h3>Vídeo de Apoio</h3>
+        </a>
+    </div>
+    <div class="dash-right">
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h2>19</h2>
+                <p>Total de Votos</p>
+            </div>
+            <div class="kpi-card">
+                <h2>3</h2>
+                <p>Votos de Competidores</p>
+            </div>
+        </div>
+        <div class="cards display-none" id="tips">
+            <div class="tips-container">
+                <h2>Dicas principais para Pesca na Praia</h2>
+                <div>
+                    <p><br>Observe as Marés e Condições do Mar: <br><br>
+                        Pesque durante a maré enchente ou logo após a maré alta, pois os peixes costumam se aproximar da
+                        costa para se alimentar. Condições de mar calmo facilitam os lançamentos e a visibilidade.
+                        <img src="https://pipa.tur.br/wp-content/uploads/2023/07/mares-e1689260055587.jpg" alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Use Anzóis e Chumbadas Adequadas:<br><br>
+                        Escolha anzóis de tamanhos compatíveis com os peixes que deseja capturar. Utilize chumbadas que
+                        mantenham sua isca no lugar, mas que sejam leves o suficiente para serem lançadas facilmente.
+                        <img src="https://images-americanas.b2w.io/produtos/2772092179/imagens/anzol-encastoado-com-chumbada-para-pescaria-apoitada-de-peixes-grandes/2772092187_1_large.jpg"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Leve Equipamentos de Segurança:<br><br>
+                        Use protetor solar, chapéu e óculos de sol para se proteger do sol. Leve água e alimentos para se
+                        manter hidratado e energizado durante a pescaria.
+                        <img src="https://lojasrede.vtexassets.com/arquivos/ids/346504/776365-2-Protetor-Solar-Facial-Sunless-FPS-50-Toque-Seco-60g.jpg?v=638182843864100000"
+                            alt="">
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="cards" id="charts">
+            <div class="tituloGraficos">
+                <h2>Melhores Praias para Pescar</h2>
+            </div>
+            <div class="graph">
+                <canvas id="praiaChart"></canvas>
+            </div>
+            <div class="tituloGraficos">
+                <h2>Quantidade de Usuários Por Perfil</h2>
+            </div>
+            <div class="graph">
+                <canvas id="pieChart" class="small-chart"></canvas>
+            </div>
+        </div>
+        <div class="cards display-none" id="video">
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/K0386DiNwkw" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+        function pegarPerfilGeral() {
+            fetch("/perfil/pegarPerfilGeral", { cache: "no-store" })
+                .then(function (resposta) {
+                    console.log("estou no then do pegarPerfilGeral()")
+
+                    if (resposta.ok) {
+                        console.log(resposta);
+
+                        resposta.json().then(json => {
+                            console.log(json);
+                            console.log(JSON.stringify(json));
+                            sessionStorage.PESQUEIRO = json[0].perfilGeral;
+                            sessionStorage.MAR = json[1].perfilGeral;
+                            sessionStorage.PRAIA = json[2].perfilGeral;
+                            sessionStorage.VARIADO = json[3].perfilGeral;
+                        })
+                    } else {
+                        console.log("Houve um erro ao tentar realizar o login!");
+
+                        resposta.text().then(texto => {
+                            console.error(texto);
+                            finalizarAguardar(texto);
+                        });
+                    }
+                }).catch(function (erro) {
+                    console.log(erro);
+                })
+
+            return false;
+        }
+
+        document.getElementById('btn-graficos').addEventListener('click', function () {
+            document.getElementById('charts').classList.remove('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-dicas').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.remove('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.remove('display-none');
+        });
+
+        const ctxPraia = document.getElementById('praiaChart').getContext('2d');
+        const praiaChart = new Chart(ctxPraia, {
+            type: 'bar',
+            data: {
+                labels: ['Boracéia', 'Peruíbe', 'Cananéia', 'Itanhaém'],
+                datasets: [{
+                    label: 'Quantidade de Votos',
+                    data: [4, 2, 8, 5],
+                    backgroundColor: 'rgba(255, 206, 86, 0.2)',
+                    borderColor: 'rgba(255, 206, 86, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Pesqueiro', 'Praia', 'Mar', 'Variado'],
+                datasets: [{
+                    label: 'Qtd. Usuarios',
+                    data: [
+                        sessionStorage.getItem("PESQUEIRO"),
+                        sessionStorage.getItem("MAR"),
+                        sessionStorage.getItem("PRAIA"),
+                        sessionStorage.getItem("VARIADO")
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(120, 239, 60, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(120, 239, 60, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+
+</html>

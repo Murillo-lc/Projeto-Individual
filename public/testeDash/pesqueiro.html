@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="dashboards.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Pesqueiro Dashboard</title>
+    <style>
+        .small-chart {
+            margin-left: 80px;
+            max-width: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+
+<body onload="pegarPerfilGeral()">
+    <div class="header-left">
+        <h1>Pesqueiro</h1>
+        <a href="#" id="btn-graficos" class="btn-nav">
+            <h3>Gráficos</h3>
+        </a>
+        <a href="#" id="btn-dicas" class="btn-nav-white">
+            <h3>Dicas</h3>
+        </a>
+        <div class="hello">
+            <h3>Olá, Seja Bem-vindo</h3>
+        </div>
+        <a href="#" id="btn-logout" class="btn-logout">
+            <h3>Vídeo de Apoio</h3>
+        </a>
+    </div>
+    <div class="dash-right">
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h2>48</h2>
+                <p>Total de votos</p>
+            </div>
+            <div class="kpi-card">
+                <h2>19</h2>
+                <p>Votos de Competidores</p>
+            </div>
+        </div>
+        <div class="cards display-none" id="tips">
+            <div class="tips-container">
+                <h2>Dicas principais para Pesqueiro</h2>
+                <div>
+                    <p><br>Escolha o Equipamento Certo: <br><br>
+                        Utilize varas e linhas adequadas para o tipo de peixe que você pretende capturar. Varas mais
+                        leves são ideais para peixes<br> menores, enquanto varas mais fortes são necessárias para peixes
+                        maiores.
+                        <img src="https://encrypted-tbn3.gstatic.com/shopping?q=tbn:ANd9GcQX3wRmOnlZE5X_VZo48BPJi_dOQQd7-nunqkIFJGelvOHPgU4wD-UY6IgDB_aFNk6NkalnLnUckeT1oPuNHL46XOu3AMogYzpr_LkVS79X&usqp=CAE"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Selecione a Isca Correta: <br><br>
+                        Utilize iscas naturais, como minhocas e camarões, ou iscas artificiais que imitam o alimento
+                        natural dos peixes do pesqueiro.<br> Verifique com os funcionários do local qual isca tem sido
+                        mais eficaz recentemente.
+                        <img src="https://encrypted-tbn0.gstatic.com/shopping?q=tbn:ANd9GcRMtlMePl6JETku7OyoDI4BugZup1gOFc6MM8wuOQ01jYwGq6y6hhca8zXVNIpJdUyxlx-549f39gwfGMGGjpwXvtdPajylaSAa65O4OqjxuYozvBD-506G&usqp=CAE"
+                            alt="">
+                    </p>
+                </div>
+                <div>
+                    <p><br>Observe o Comportamento dos Peixes: <br><br>
+                        Preste atenção aos locais onde os peixes estão mais ativos. Procure áreas sombreadas, vegetação
+                        ou onde a água está mais <br> movimentada, pois são locais onde os peixes costumam se
+                        concentrar.
+                        <img src="https://peixemania.com.br/wp-content/uploads/2023/07/piscicultura-no-brasil-390x220.webp"
+                            alt="">
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="cards" id="charts">
+            <div class="tituloGraficos">
+                <h2>Melhores Pesqueiros</h2>
+            </div>
+            <div class="graph">
+                <canvas id="pesqueiroChart"></canvas>
+            </div>
+            <div class="tituloGraficos">
+                <h2>Quantidade de Usuários Por Perfil</h2>
+            </div>
+            <div class="graph">
+                <canvas id="pieChart" class="small-chart"></canvas>
+            </div>
+        </div>
+        <div class="cards display-none" id="video">
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/VrXSXcIo_hg" frameborder="0"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+
+        function pegarPerfilGeral() {
+            fetch("/perfil/pegarPerfilGeral", { cache: "no-store" })
+                .then(function (resposta) {
+                    console.log("estou no then do pegarPerfilGeral()")
+
+                    if (resposta.ok) {
+                        console.log(resposta);
+
+                        resposta.json().then(json => {
+                            console.log(json);
+                            console.log(JSON.stringify(json));
+                            sessionStorage.PESQUEIRO = json[0].perfilGeral;
+                            sessionStorage.MAR = json[1].perfilGeral;
+                            sessionStorage.PRAIA = json[2].perfilGeral;
+                            sessionStorage.VARIADO = json[3].perfilGeral;
+
+
+                        })
+                    } else {
+                        console.log("Houve um erro ao tentar realizar o login!");
+
+                        resposta.text().then(texto => {
+                            console.error(texto);
+                            finalizarAguardar(texto);
+                        });
+                    }
+                }).catch(function (erro) {
+                    console.log(erro);
+                })
+
+            return false;
+
+        }
+
+
+        document.getElementById('btn-graficos').addEventListener('click', function () {
+            document.getElementById('charts').classList.remove('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-dicas').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.remove('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-logout').addEventListener('click', function () {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.remove('display-none');
+        });
+
+        const ctxPesqueiro = document.getElementById('pesqueiroChart').getContext('2d');
+        const pesqueiroChart = new Chart(ctxPesqueiro, {
+            type: 'bar',
+            data: {
+                labels: ['P. Ueda', 'P. Arujá', 'P. Maeda', 'P. Cantareira', 'P. Carmo'],
+                datasets: [{
+                    label: 'Quantidade de Votos',
+                    data: [8, 20, 13, 5, 2],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        // Gráfico de Pizza
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Pesqueiro', 'Praia', 'Mar', 'Variado'],
+                datasets: [{
+                    label: 'Qtd. Usuarios',
+                    data: [
+                    sessionStorage.getItem("PESQUEIRO"),
+                    sessionStorage.getItem("MAR") ,
+                    sessionStorage.getItem("PRAIA"),
+                    sessionStorage.getItem("VARIADO")],
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.2)',
+                    'rgba(54, 162, 235, 0.2)',
+                    'rgba(75, 192, 192, 0.2)',
+                    'rgba(120, 239, 60, 0.2)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(120, 239, 60, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+            options: {
+            responsive: true
+        }
+        });
+    </script>
+</body>
+
+</html>

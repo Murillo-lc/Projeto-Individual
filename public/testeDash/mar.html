@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="dashboards.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Mar Dashboard</title>
+    <style>
+        .small-chart {
+            margin-left: 80px;
+            max-width: 300px;
+            max-height: 300px;
+        }
+    </style>
+</head>
+<body onload="pegarPerfilGeral()">
+    <div class="header-left">
+        <h1>Mar</h1>
+        <a href="#" id="btn-graficos" class="btn-nav"><h3>Gráficos</h3></a>
+        <a href="#" id="btn-dicas" class="btn-nav-white"><h3>Dicas</h3></a>
+        <div class="hello">
+            <h3>Olá, Seja Bem-vindo</h3>
+        </div>
+        <a href="#" id="btn-logout" class="btn-logout"><h3>Vídeo de Apoio</h3></a>
+    </div>
+    <div class="dash-right">
+        <div class="kpi-container">
+            <div class="kpi-card">
+                <h2>22</h2>
+                <p>Total de Votos</p>
+            </div>
+            <div class="kpi-card">
+                <h2>8</h2>
+                <p>Votos de Competidores</p>
+            </div>
+        </div>
+        <div class="cards display-none" id="tips">
+            <div class="tips-container">
+                <h2>Dicas principais para Pesca no Mar</h2>
+                <div><p><br>Verifique o Clima e as Condições do Mar: <br><br>
+                    Antes de sair, sempre verifique as condições climáticas e do mar. Evite pescar em dias de tempestade ou com mar muito agitado para garantir a segurança.
+                    <img src="https://static.escolakids.uol.com.br/conteudo_legenda/4e3d738c244f4c5f3b56f46260402cc4.jpg" alt=""></p></div>
+    
+                  <div>  <p><br>Conheça as Áreas de Pesca:<br><br>
+                        Informe-se sobre os melhores pontos de pesca em alto mar. Áreas como recifes, estruturas submersas e plataformas de petróleo são locais onde os peixes costumam se concentrar.
+                    <img src="https://marsemfim.com.br/wp-content/uploads/2020/06/a-c%C3%B3pia-13.jpg" alt="">
+                   </p></div>
+    
+                    <div><p><br>Adapte Suas Técnicas de Pesca: <br><br>
+                        Técnicas como trolling (arrasto de iscas atrás do barco), jigging (movimentação vertical da isca) e pesca de fundo são eficazes em alto mar. Experimente diferentes técnicas para ver qual funciona melhor para as espécies que está buscando.
+                    <img src="https://m.media-amazon.com/images/I/71nlP6BH6tL._AC_UF1000,1000_QL80_.jpg" alt=""></p></div>
+            </div>
+        </div>
+        <div class="cards" id="charts">
+            <div class="tituloGraficos">
+                <h2>Melhores Lugares para Pescar em Alto Mar</h2>
+            </div>
+            <div class="graph">
+                <canvas id="marChart"></canvas>
+            </div>
+        </div>
+        <div class="cards display-none" id="chartArea">
+            <div class="tituloGraficos">
+                <h2>Quantidade de Usuários Por Perfil</h2>
+            </div>
+            <div class="graph">
+                <canvas id="pieChart" class="small-chart"></canvas>
+            </div>
+        </div>
+        <div class="cards display-none" id="video">
+            <div class="video-container">
+                <iframe src="https://www.youtube.com/embed/2zZ1Aw9RN34" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+    <script>
+        function pegarPerfilGeral() {
+            fetch("/perfil/pegarPerfilGeral", { cache: "no-store" })
+                .then(function (resposta) {
+                    console.log("estou no then do pegarPerfilGeral()")
+
+                    if (resposta.ok) {
+                        console.log(resposta);
+
+                        resposta.json().then(json => {
+                            console.log(json);
+                            console.log(JSON.stringify(json));
+                            sessionStorage.PESQUEIRO = json[0].perfilGeral;
+                            sessionStorage.MAR = json[1].perfilGeral;
+                            sessionStorage.PRAIA = json[2].perfilGeral;
+                            sessionStorage.VARIADO = json[3].perfilGeral;
+                        });
+                    } else {
+                        console.log("Houve um erro ao tentar realizar o login!");
+
+                        resposta.text().then(texto => {
+                            console.error(texto);
+                            finalizarAguardar(texto);
+                        });
+                    }
+                }).catch(function (erro) {
+                    console.log(erro);
+                });
+
+            return false;
+        }
+
+        document.getElementById('btn-graficos').addEventListener('click', function() {
+            document.getElementById('charts').classList.remove('display-none');
+            document.getElementById('chartArea').classList.remove('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-dicas').addEventListener('click', function() {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('chartArea').classList.add('display-none');
+            document.getElementById('tips').classList.remove('display-none');
+            document.getElementById('video').classList.add('display-none');
+        });
+        document.getElementById('btn-logout').addEventListener('click', function() {
+            document.getElementById('charts').classList.add('display-none');
+            document.getElementById('chartArea').classList.add('display-none');
+            document.getElementById('tips').classList.add('display-none');
+            document.getElementById('video').classList.remove('display-none');
+        });
+
+        const ctxMar = document.getElementById('marChart').getContext('2d');
+        const marChart = new Chart(ctxMar, {
+            type: 'bar',
+            data: {
+                labels: ['Ilha do Cardoso', 'Ilhabela', 'São Sebastião', 'Ubatuba'],
+                datasets: [{
+                    label: 'Quantidade de Votos',
+                    data: [10, 3, 2, 7],
+                    backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                    borderColor: 'rgba(75, 192, 192, 1)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        });
+
+        const ctxPie = document.getElementById('pieChart').getContext('2d');
+        const pieChart = new Chart(ctxPie, {
+            type: 'pie',
+            data: {
+                labels: ['Pesqueiro', 'Praia', 'Mar', 'Variado'],
+                datasets: [{
+                    label: 'Qtd. Usuarios',
+                    data: [
+                        sessionStorage.getItem("PESQUEIRO"),
+                        sessionStorage.getItem("MAR"),
+                        sessionStorage.getItem("PRAIA"),
+                        sessionStorage.getItem("VARIADO")
+                    ],
+                    backgroundColor: [
+                        'rgba(255, 99, 132, 0.2)',
+                        'rgba(54, 162, 235, 0.2)',
+                        'rgba(75, 192, 192, 0.2)',
+                        'rgba(120, 239, 60, 0.2)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(120, 239, 60, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true
+            }
+        });
+    </script>
+</body>
+</html>
